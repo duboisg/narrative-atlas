@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "narrative-atlas"
+version = "0.1.0"
+description = "A resilient LLM pipeline for structuring book-length narrative documents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Guillaume Dubois" }]
+keywords = [
+  "document-processing",
+  "llm",
+  "narrative-analysis",
+  "natural-language-processing",
+  "structured-data",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing :: General",
+]
+dependencies = [
+  "openai>=1.0,<3",
+  "pypdf>=5.0,<7",
+  "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = ["build>=1.2,<2", "pytest>=8.0,<10", "ruff>=0.9,<1"]
+
+[project.scripts]
+narrative-atlas = "narrative_atlas.cli:main"
+
+[project.urls]
+Repository = "https://github.com/duboisg/narrative-atlas"
+Issues = "https://github.com/duboisg/narrative-atlas/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/narrative_atlas"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
