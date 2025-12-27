@@ -71,6 +71,7 @@
         flex:0 0 576px;
         display:grid;
         place-items:center;
+        position:relative;
         background:radial-gradient(900px 420px at 50% 20%, rgba(40,90,120,0.18), rgba(0,0,0,0));
       }
       canvas{
@@ -78,6 +79,7 @@
         image-rendering:crisp-edges;
         border-bottom:1px solid var(--line);
         background:#071019;
+        touch-action:none;
       }
 
       .hud{
@@ -186,6 +188,52 @@
       }
       .choiceText{color:#d9e6fb}
 
+      /* Touch controls (mobile-first; hidden on fine pointers) */
+      .touchControls{
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+      }
+      .touchPad, .touchChoices{
+        pointer-events:auto;
+        position:absolute;
+        bottom:12px;
+        display:grid;
+        gap:8px;
+        user-select:none;
+        -webkit-user-select:none;
+      }
+      .touchPad{left:12px}
+      .touchChoices{right:12px; grid-auto-rows:1fr}
+      .touchBtn{
+        width:54px;
+        height:54px;
+        border-radius:14px;
+        border:1px solid rgba(38,50,68,0.85);
+        background:rgba(0,0,0,0.35);
+        color:#eaf4ff;
+        font:800 16px/1 system-ui;
+        display:grid;
+        place-items:center;
+        backdrop-filter:blur(6px);
+        -webkit-backdrop-filter:blur(6px);
+      }
+      .touchBtn:active{
+        border-color:rgba(139,220,255,0.8);
+        background:rgba(139,220,255,0.14);
+      }
+      .touchPadGrid{
+        display:grid;
+        grid-template-columns:repeat(3, 54px);
+        grid-template-rows:repeat(3, 54px);
+        gap:8px;
+      }
+      .touchBtn.empty{opacity:0; pointer-events:none}
+
+      @media (pointer:fine) and (min-width: 901px){
+        .touchControls{display:none}
+      }
+
       .logPanel{
         flex:0 0 124px;
         height:124px;
@@ -255,6 +303,29 @@
 
       <section class="stage" aria-label="Habitat view">
         <canvas id="game" width="800" height="576"></canvas>
+        <div class="touchControls" aria-label="Touch controls">
+          <div class="touchPad">
+            <div class="touchPadGrid" role="group" aria-label="Movement pad">
+              <button class="touchBtn empty" type="button" aria-hidden="true"></button>
+              <button class="touchBtn" type="button" data-move="up" aria-label="Move up">▲</button>
+              <button class="touchBtn empty" type="button" aria-hidden="true"></button>
+
+              <button class="touchBtn" type="button" data-move="left" aria-label="Move left">◀</button>
+              <button class="touchBtn" type="button" data-move="down" aria-label="Move down">▼</button>
+              <button class="touchBtn" type="button" data-move="right" aria-label="Move right">▶</button>
+
+              <button class="touchBtn empty" type="button" aria-hidden="true"></button>
+              <button class="touchBtn empty" type="button" aria-hidden="true"></button>
+              <button class="touchBtn empty" type="button" aria-hidden="true"></button>
+            </div>
+          </div>
+
+          <div class="touchChoices" role="group" aria-label="Choice buttons">
+            <button class="touchBtn" type="button" data-choice="1" aria-label="Choice 1">1</button>
+            <button class="touchBtn" type="button" data-choice="2" aria-label="Choice 2">2</button>
+            <button class="touchBtn" type="button" data-choice="3" aria-label="Choice 3">3</button>
+          </div>
+        </div>
       </section>
 
       <section class="hud" aria-label="Status and dialogue">
@@ -679,6 +750,17 @@
           for (const c of choices) {
             const row = document.createElement("div");
             row.className = "choice";
+            row.role = "button";
+            row.tabIndex = 0;
+            row.style.cursor = "pointer";
+            row.setAttribute("aria-label", `Choose: ${c.label}`);
+            row.addEventListener("click", () => pickChoice(c.k));
+            row.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                pickChoice(c.k);
+              }
+            });
             const key = document.createElement("div");
             key.className = "key";
             key.textContent = c.k;
@@ -1029,6 +1111,84 @@
         }
 
         window.addEventListener("keydown", onKeyDown, { passive: false });
+
+        // Touch controls: on-screen D-pad + choice buttons
+        (() => {
+          const moveMap = {
+            up: [0, -1],
+            down: [0, 1],
+            left: [-1, 0],
+            right: [1, 0],
+          };
+
+          /** @type {number | null} */
+          let holdTimer = null;
+          const stopHold = () => {
+            if (holdTimer !== null) {
+              window.clearInterval(holdTimer);
+              holdTimer = null;
+            }
+          };
+
+          const startHoldMove = (dir) => {
+            const v = moveMap[dir];
+            if (!v) return;
+            // One immediate attempt, then repeat attempts; tryMove enforces cooldown.
+            tryMove(v[0], v[1]);
+            stopHold();
+            holdTimer = window.setInterval(() => tryMove(v[0], v[1]), 90);
+          };
+
+          const bindPress = (el, onPress) => {
+            el.addEventListener("pointerdown", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              el.setPointerCapture?.(e.pointerId);
+              onPress();
+            }, { passive: false });
+
+            const end = (e) => {
+              e.preventDefault?.();
+              stopHold();
+            };
+            el.addEventListener("pointerup", end, { passive: false });
+            el.addEventListener("pointercancel", end, { passive: false });
+            el.addEventListener("pointerleave", end, { passive: false });
+          };
+
+          document.querySelectorAll("[data-move]").forEach((btn) => {
+            const dir = btn.getAttribute("data-move");
+            bindPress(btn, () => startHoldMove(dir));
+          });
+          document.querySelectorAll("[data-choice]").forEach((btn) => {
+            const k = btn.getAttribute("data-choice");
+            bindPress(btn, () => pickChoice(k));
+          });
+
+          // Swipe on canvas = one move (deliberate, no continuous dragging)
+          let start = null;
+          canvas.addEventListener("pointerdown", (e) => {
+            // Ignore if user started on controls overlay
+            if (e.target !== canvas) return;
+            start = { x: e.clientX, y: e.clientY };
+          }, { passive: true });
+
+          canvas.addEventListener("pointerup", (e) => {
+            if (!start) return;
+            const dx = e.clientX - start.x;
+            const dy = e.clientY - start.y;
+            start = null;
+            const ax = Math.abs(dx);
+            const ay = Math.abs(dy);
+            const TH = 24;
+            if (ax < TH && ay < TH) return;
+            if (ax > ay) {
+              tryMove(dx > 0 ? 1 : -1, 0);
+            } else {
+              tryMove(0, dy > 0 ? 1 : -1);
+            }
+          }, { passive: true });
+        })();
 
         let last = performance.now();
         function loop() {
