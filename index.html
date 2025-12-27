@@ -19,25 +19,33 @@
       }
 
       *{box-sizing:border-box}
-      html,body{height:100%}
+      html,body{height:100%; width:100%}
       body{
         margin:0;
+        padding:0;
         background:linear-gradient(180deg,#070a0f 0%, #0b0f14 70%, #070a0f 100%);
         color:var(--ink);
         font:14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
-        display:grid;
-        place-items:center;
+        overflow:hidden;
+        overscroll-behavior:none;
+        display:block;
       }
 
       .frame{
-        width:860px;
-        height:860px;
+        width:100vw;
+        height:100dvh;
+        height:100vh; /* fallback */
         border:1px solid var(--line);
         background:rgba(10,14,20,0.8);
-        box-shadow:0 20px 70px rgba(0,0,0,0.55);
+        box-shadow:none;
         overflow:hidden;
         display:flex;
         flex-direction:column;
+        padding:
+          env(safe-area-inset-top)
+          env(safe-area-inset-right)
+          env(safe-area-inset-bottom)
+          env(safe-area-inset-left);
       }
 
       .topbar{
@@ -67,8 +75,8 @@
       #clockValue{color:#eaf4ff; font-weight:700}
 
       .stage{
-        height:576px;
-        flex:0 0 576px;
+        flex:1 1 auto;
+        min-height:260px;
         display:grid;
         place-items:center;
         background:radial-gradient(900px 420px at 50% 20%, rgba(40,90,120,0.18), rgba(0,0,0,0));
@@ -76,14 +84,14 @@
       canvas{
         image-rendering:pixelated;
         image-rendering:crisp-edges;
-        border-bottom:1px solid var(--line);
+        border-bottom:none;
         background:#071019;
         touch-action:none;
       }
 
       .hud{
-        flex:1 1 auto;
-        min-height:160px;
+        flex:0 0 auto;
+        height:clamp(160px, 26vh, 240px);
         display:grid;
         grid-template-columns:1fr 1fr;
         gap:10px;
@@ -157,7 +165,7 @@
       }
       .dialogueBody{
         height:74px;
-        overflow:hidden;
+        overflow:auto;
         color:#e6edf7;
         white-space:pre-wrap;
       }
@@ -188,8 +196,8 @@
       .choiceText{color:#d9e6fb}
 
       .logPanel{
-        flex:0 0 124px;
-        height:124px;
+        flex:0 0 auto;
+        height:clamp(88px, 16vh, 160px);
         padding:10px;
         background:linear-gradient(180deg, rgba(12,18,28,0.9), rgba(8,12,18,0.95));
       }
@@ -236,10 +244,6 @@
       .logLine-info{color:#8bdcff}
 
       @media (max-width: 900px){
-        body{place-items:stretch}
-        .frame{width:100vw; height:100vh}
-        .stage{height:auto; flex:0 0 auto}
-        canvas{width:100%; height:auto}
         .hud{grid-template-columns:1fr}
       }
     </style>
@@ -394,6 +398,8 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
 
+        const stageEl = canvas.closest(".stage");
+
         const elClock = document.getElementById("clockValue");
         const elRoom = document.getElementById("roomBadge");
         const elHint = document.getElementById("hintText");
@@ -409,6 +415,13 @@
         const TILE = 32;
         const GRID_W = 25;
         const GRID_H = 18; // 18 * 32 = 576
+
+        // Keep the internal resolution fixed for consistent tile logic,
+        // but scale the displayed canvas so the whole app fits one screen.
+        const BASE_W = 800;
+        const BASE_H = 576;
+        canvas.width = BASE_W;
+        canvas.height = BASE_H;
 
         const MOVE_COOLDOWN_MS = 210; // deliberate; every step is a delay
         const SESSION_SECONDS_DEFAULT = 10 * 60;
@@ -605,6 +618,19 @@
 
         function clamp(v, a, b) {
           return Math.max(a, Math.min(b, v));
+        }
+
+        function resizeCanvasDisplay() {
+          if (!stageEl) return;
+          const rect = stageEl.getBoundingClientRect();
+          const pad = 12; // breathing room inside stage
+          const maxW = Math.max(1, rect.width - pad * 2);
+          const maxH = Math.max(1, rect.height - pad * 2);
+          const scale = Math.min(maxW / BASE_W, maxH / BASE_H);
+          const w = Math.floor(BASE_W * scale);
+          const h = Math.floor(BASE_H * scale);
+          canvas.style.width = `${w}px`;
+          canvas.style.height = `${h}px`;
         }
         function fmtClock(sec) {
           const m = Math.floor(sec / 60);
@@ -1041,6 +1067,11 @@
         }
 
         window.addEventListener("keydown", onKeyDown, { passive: false });
+
+        // Resize hooks for mobile address bar / orientation changes
+        window.addEventListener("resize", resizeCanvasDisplay, { passive: true });
+        window.visualViewport?.addEventListener("resize", resizeCanvasDisplay, { passive: true });
+        resizeCanvasDisplay();
 
         // Touch controls: swipe on canvas = one move
         (() => {
