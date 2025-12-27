@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>UNDERHILL / SHIFT 1 — POC</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="frame" aria-label="Underhill POC">
+      <header class="topbar">
+        <div class="title">UNDERHILL / SHIFT 1</div>
+        <div class="clock">
+          <span id="clockLabel">Shift</span>
+          <span id="clockValue">00:00</span>
+        </div>
+      </header>
+
+      <section class="stage" aria-label="Habitat view">
+        <canvas id="game" width="800" height="576"></canvas>
+      </section>
+
+      <section class="hud" aria-label="Status and dialogue">
+        <div class="status" aria-label="Room status">
+          <div class="statusRow">
+            <div class="badge" id="roomBadge">—</div>
+            <div class="muted" id="hintText">Move with WASD / arrows. Stand next to a person to engage.</div>
+          </div>
+          <div class="meters">
+            <div class="meter">
+              <div class="meterLabel">Life Support</div>
+              <div class="meterBar"><div id="mLife" class="meterFill"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meterLabel">Comms</div>
+              <div class="meterBar"><div id="mComms" class="meterFill"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meterLabel">Common</div>
+              <div class="meterBar"><div id="mCommon" class="meterFill"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meterLabel">Ops</div>
+              <div class="meterBar"><div id="mOps" class="meterFill"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialogue" aria-label="Dialogue">
+          <div class="dialogueHeader">
+            <div class="speaker" id="speaker">—</div>
+            <div class="alert" id="alert"></div>
+          </div>
+          <div class="dialogueBody" id="dialogueText">
+            You’re the coordinator on duty. You can only influence what you’re standing next to.
+          </div>
+          <div class="choices" id="choices"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
