@@ -1,7 +1,8 @@
 # Narrative Atlas
 
-Narrative Atlas compiles book-length PDF, Markdown, or text sources into structured characters,
-locations, scenes, story arcs, and timelines. It was built to ground a game pitch in a large
+Narrative Atlas compiles book-length PDF, Markdown, or text sources into structured narrative
+records and a linked timeline. Those records cover characters and settings, plus scenes and
+story arcs. The pipeline was built to ground a game pitch in a large
 narrative corpus while preserving chapter boundaries, recovering malformed model output,
 reconciling repeated entities, and keeping intermediate extraction evidence inspectable.
 
@@ -64,9 +65,9 @@ auditability.
 
 ### Narrative graph construction
 
-Scenes are linked to story arcs using overlapping characters, themes, conflicts, and locations.
-The final timeline includes ordered scenes, arc membership, tension values, and a character
-presence index suitable for visualization or downstream analysis.
+Scenes are linked to story arcs using evidence already present in the extracted records, such as
+shared characters and themes. The final timeline keeps scene order and arc membership alongside
+tension and character-presence indexes.
 
 ### Checkpointed runs
 
