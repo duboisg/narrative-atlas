@@ -1,16 +1,9 @@
 # Narrative Atlas
 
-**Turn book-length narrative source material into a structured story world that writers,
-designers, and creative teams can actually reason about.**
-
-Narrative Atlas is an experimental document-intelligence pipeline built to ground a game pitch
-in a large source corpus. What began as a way to make thousands of pages usable for creative
-development became a deeper engineering exercise: preserve narrative boundaries, extract rich
-story artifacts with an LLM, recover from imperfect responses, reconcile repeated entities, and
-produce datasets ready for exploration, visualization, or retrieval.
-
-This is not a chatbot and it is not a RAG demo. It is the **corpus-compilation layer that should
-exist before either one**.
+Narrative Atlas compiles book-length PDF, Markdown, or text sources into structured characters,
+locations, scenes, story arcs, and timelines. It was built to ground a game pitch in a large
+narrative corpus while preserving chapter boundaries, recovering malformed model output,
+reconciling repeated entities, and keeping intermediate extraction evidence inspectable.
 
 > Created in December 2025. Extracted from an earlier game-concept repository and rebuilt as a
 > standalone, source-agnostic portfolio project.
@@ -162,16 +155,12 @@ Narrative Atlas is a research-grade local pipeline, not a production content pla
 - Source files, generated outputs, and credentials are ignored by Git by default. Process only
   material you own or are authorized to use.
 
-## Why this matters for creative development
+## Using the atlas
 
-A compelling pitch needs more than a synopsis. It needs a navigable model of the source: which
-characters collide, where tension rises, which locations carry dramatic weight, and which arcs
-can support missions, systems, or player choices. Narrative Atlas turns close reading at scale
-into structured creative leverage — while keeping the intermediate evidence inspectable.
-
-The same foundation can support story bibles, adaptation research, editorial analysis,
-visualizations, and future retrieval systems without coupling the corpus compiler to one final
-interface.
+The compiled records support story bibles, adaptation research, editorial analysis,
+visualizations, and retrieval systems. A team can inspect which characters share scenes, where
+tension changes, which locations recur, and how extracted arcs span the source without coupling
+the compiler to one final interface.
 
 ## License
 
